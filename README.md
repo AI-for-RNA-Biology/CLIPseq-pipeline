@@ -48,12 +48,12 @@ It is more stable, and it is deployed on https://app.flow.bio/.
 * You can [install nextflow](https://docs.seqera.io/nextflow/install#install-nextflow) to your HOME if you want, or you can use `/storage/research/dbmr_luisierlab/resources/local/nextflow/nextflow`.
 
 #### Workdir and inputs
-* Workdir location is your choice. By default the pipeline will write its results into `your_current_folder/results`.
+* Workdir location is your choice. By default, the pipeline writes its results into `your_current_location/results`.
 * The only input you need is a `samplesheet`; a CSV file containing 4 columns: `group`,`replicate`,`fastq_1`,`fastq_2.`
     - `group` is the sample name
-    - `replicate` is currently unused by the pipeline so filling with '1' is acceptable
-    -`fastq_1` is your demultiplexed sample fastq
-    -paired end is currently not supported so please do not add a `fastq_2`
+    - `replicate` is currently unused by the pipeline, so filling with '1' is acceptable
+    - `fastq_1` is your demultiplexed sample fastq
+    - paired end is currently not supported, so do not add a `fastq_2`
 
 Example `samplesheet` (remember, it should be CSV):
 ```
@@ -74,14 +74,14 @@ These configs need to be passed when running the pipeline
 
 * General nextflow config for UBELIX
     - `storage/research/dbmr_luisierlab/resources/pipelines/ubelix_nextflow.config`
-    - This config instructs nextflow to use singularity, sets a fixed `cacheDir` location (`/storage/research/dbmr_luisierlab/resources/pipelines/singularity_cacheDir`), instructs singularity to bind `/scratch/local`, and sets some SLURM options (QOS, etc.)
+    - This config instructs nextflow to use singularity, sets a fixed `cacheDir` location (`/storage/research/dbmr_luisierlab/resources/pipelines/singularity_cacheDir`), instructs singularity to bind `/scratch/local`, and sets some SLURM options (QOS, wckey, etc.)
 
 * Genome config
     - `/storage/research/dbmr_luisierlab/resources/pipelines/clipseq/genome.config`
     - Defines paths to reference files needed for the pipeline
 
 ## Running the pipeline
-Once you are able to run `nextflow`, and you have your `samplesheet` you can execute the pipeline directly from the login node in a `screen` session, or as an SBATCH script.
+Once you can run `nextflow` and have your `samplesheet`, you can execute the pipeline directly from the login node in a `screen` session, or as an SBATCH script.
 ```
 NXF_VER=24.10.8 NXF_SINGULARITY_HOME_MOUNT=true NXF_SYNTAX_PARSER=v1 /storage/research/dbmr_luisierlab/resources/local/nextflow/nextflow run \
  /storage/research/dbmr_luisierlab/resources/pipelines/clipseq/flow/clipseq \
@@ -96,20 +96,24 @@ NXF_VER=24.10.8 NXF_SINGULARITY_HOME_MOUNT=true NXF_SYNTAX_PARSER=v1 /storage/re
 
 > [!NOTE]
 > * Single-dash arguments are for `nextflow`. Double-dash arguments are passed to the pipeline.
-> * `NXF_VER=24.10.8` is to use the same version as flow.bio. It's not critical, just a precaution to avoid unexpected errors.
+> * `NXF_VER=24.10.8` is to use the same version as by flow.bio. It's not critical, just a precaution to avoid unexpected errors.
 > * `NXF_SINGULARITY_HOME_MOUNT=true` is to deal with some tools like Matplotlib or Numba that write cache to HOME. Since Nextflow 23.10, the user's HOME is no longer mounted automatically.
 > * `NXF_SYNTAX_PARSER=v1`: Nextflow's newest syntax is more rigid, and some older code does not respect it yet.
-> * `--run_move_umi_to_header` should be explicitly set to avoid errors. It instructs `umitools`to move UMI from fastq reads to read header. In this case ensure you provide the UMI format to `umi_header_format`.
-> * If something goes wrong, you can resume the pipeline with the option `-resume`: successfully completed jobs won't be repeated.
-> * If you are executing the pipeline as a SLURM job, the sbatch resource requests (--cpus-per-task=2, --mem=8G) only apply to the Nextflow master controller process. Nextflow will automatically use SLURM commands (`srun`/`sbatch`) behind the scenes to launch individual pipeline tasks as separate, independent cluster jobs.
+> * `--run_move_umi_to_header` instructs `umitools`to move UMI from fastq reads to the read header. Use it if the UMI is in the 5' end of the fastq reads. In this case, ensure you provide the UMI format to `umi_header_format`.
+> * `umi_separator` is used to separate the UMI sequence in the read header. If you have processed FASTQ files, check the separator character.
+> * If something goes wrong, you can resume the pipeline with the option `-resume`: completed jobs won't be repeated.
+> * A failed job will be automatically resubmitted by the pipeline with double the resources. If it fails again, the pipeline will stop with an error. This usually indicates a bug. Once it's fixed, re-run the pipeline with `-resume`.
+> * If you are executing the pipeline as a SLURM job, the sbatch resource requests (eg. `--cpus-per-task=2`, `--mem=8G`) only apply to the Nextflow master controller process. Nextflow will automatically use SLURM commands (`srun`/`sbatch`) behind the scenes to launch individual pipeline tasks as separate, independent cluster jobs.
 
 
 ## Results
-Nextflow pipelines usually by default write to two folders: `work` and `results`.
-`work` contains all the staged files and results from every job. It enables resuming the pipeline when something goes wrong, 
+Nextflow pipelines write to two folders by default: `./work` and `./results`.
+
+`work` contains all the staged files and the outputs from every job. It also enables automatic resumption of the pipeline when something goes wrong.
+
 `results` is the main output location.
 > [!WARNING]
-> * The pipeline with populate `results` with symlinks to `work`. Do not delete `work`.
+> * The pipeline will populate `results` with **symlinks** to `work`. Do not delete `work`.
 
 Results will be written to `./results/` folder, containing:
 * `00_genome` contains all reference files produced when the prepare_clipseq subworkflow is run.
