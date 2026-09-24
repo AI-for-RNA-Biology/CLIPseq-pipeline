@@ -130,7 +130,7 @@ The main log is `./.nextflow.log`
 
 `./.nextflow/history` logs the main execution commands. 
 
-## A note on paired-end reads
+### A note on paired-end reads
 From the developers of nf-core [clipseq](https://github.com/nf-core/clipseq/tree/feat-2-0#a-note-on-paired-end-reads):
 ```
 The pipeline currently does not support paired-end reads, as in our experience alignment using both reads when
