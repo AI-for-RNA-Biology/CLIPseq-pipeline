@@ -133,8 +133,8 @@ The main log is `./.nextflow.log`
 ### A note on paired-end reads
 From the developers of nf-core [clipseq](https://github.com/nf-core/clipseq/tree/feat-2-0#a-note-on-paired-end-reads):
 ```
-The pipeline currently does not support paired-end reads, as in our experience alignment using both reads when
-available doesn't improve analysis of CLIP data. When receiving CLIP data sequenced as paired-end, we recommend
-running the pipeline with the read containing the crosslink and ensuring the crosslink_position parameter is set
-appropriately.
+The pipeline currently does not support paired-end reads, as in our experience alignment using
+both reads when available doesn't improve analysis of CLIP data. When receiving CLIP data
+sequenced as paired-end, we recommend running the pipeline with the read containing the crosslink
+and ensuring the crosslink_position parameter is set appropriately.
 ```
