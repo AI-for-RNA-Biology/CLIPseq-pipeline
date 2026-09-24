@@ -138,3 +138,5 @@ using both reads when available doesn't improve analysis of CLIP data. When rece
 data sequenced as paired-end, we recommend running the pipeline with the read containing
 the crosslink and ensuring the crosslink_position parameter is set appropriately.
 ```
+For ENCODE paired-end CLIP-seq data, the 5' crosslink truncation site is located on Read 2, which begins with a random-mer sequence (UMI), immediately followed by the genomic sequence corresponding to the 5' end of the original RNA fragment.
+
