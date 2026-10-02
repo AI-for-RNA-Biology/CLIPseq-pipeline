@@ -73,37 +73,50 @@ We configured the pipeline to use singularity, and we prefetched all the contain
 These configs need to be passed when running the pipeline
 
 * General nextflow config for UBELIX
-    - `storage/research/dbmr_luisierlab/resources/pipelines/ubelix_nextflow.config`
-    - This config instructs nextflow to use singularity, sets a fixed `cacheDir` location (`/storage/research/dbmr_luisierlab/resources/pipelines/singularity_cacheDir`), instructs singularity to bind `/scratch/local`, and sets some SLURM options (QOS, wckey, etc.)
+    - `ubelix_nextflow.config`
+    - This config instructs nextflow to use singularity, sets a fixed `cacheDir` location (`/storage/research/dbmr_luisierlab/resources/pipelines/singularity_cacheDir`), instructs singularity to bind `/scratch/local`, and sets some default SLURM options (QOS, wckey, etc.)
+    - In addition, it adjusts resources for several pipeline processes. It also limits job time to 6h (largely sufficient) to take advantage of the free `job_cpu_preemptable` QOS.
+    - You may adjust this config if needed.
 
 * Genome config
-    - `/storage/research/dbmr_luisierlab/resources/pipelines/clipseq/genome.config`
-    - Defines paths to reference files needed for the pipeline
+    - `genome.config`
+    - Also available at `/storage/research/dbmr_luisierlab/resources/pipelines/clipseq/genome.config`
+    - Defines fixed paths to reference files needed for the pipeline.
+    - This config file is not meant to be modified.
 
 ## Running the pipeline
 Once you can run `nextflow` and have your `samplesheet`, you can execute the pipeline directly from the login node in a `screen` session, or as an SBATCH script.
 ```
-NXF_VER=24.10.8 NXF_SINGULARITY_HOME_MOUNT=true NXF_SYNTAX_PARSER=v1 /storage/research/dbmr_luisierlab/resources/local/nextflow/nextflow run \
+module load Java
+NXF_OPTS='-Xms1g -Xmx4g' NXF_VER=24.10.8 NXF_SINGULARITY_HOME_MOUNT=true NXF_SYNTAX_PARSER=v1 /storage/research/dbmr_luisierlab/resources/local/nextflow/nextflow run \
  /storage/research/dbmr_luisierlab/resources/pipelines/clipseq/flow/clipseq \
- -c /storage/research/dbmr_luisierlab/resources/pipelines/ubelix_nextflow.config \
+ -c ubelix_nextflow.config \
  -c /storage/research/dbmr_luisierlab/resources/pipelines/clipseq/genome.config \
  -profile singularity,ubelix \
- --samplesheet samplesheet.csv \
+--publish_dir_mode link \
+--samplesheet samplesheet.csv \
  --run_move_umi_to_header true \
  --umi_header_format 'NNNNNNNNNN' \
- --umi_separator '_'
+ --umi_separator '_' \
+-bg > samplesheet.NXFlog
  ```
 
 > [!NOTE]
 > * Single-dash arguments are for `nextflow`. Double-dash arguments are passed to the pipeline.
+> * `NXF_OPTS='-Xms1g -Xmx4g'` is recommended to cap Nextflow's memory use (`nextflow` just monitors and submits jobs; it is not supposed to take many resources, and can be executed from the login node).
 > * `NXF_VER=24.10.8` is to use the same version as by flow.bio. It's not critical, just a precaution to avoid unexpected errors.
 > * `NXF_SINGULARITY_HOME_MOUNT=true` is to deal with some tools like Matplotlib or Numba that write cache to HOME. Since Nextflow 23.10, the user's HOME is no longer mounted automatically.
 > * `NXF_SYNTAX_PARSER=v1`: Nextflow's newest syntax is more rigid, and some older code does not respect it yet.
-> * `--run_move_umi_to_header` instructs `umitools`to move UMI from fastq reads to the read header. Use it if the UMI is in the 5' end of the fastq reads. In this case, ensure you provide the UMI format to `umi_header_format`.
+> * `--publish_dir_mode` Recommended `link`: will populate the results directory with hardlinks to the results in the workdir (see below). This will not increase disk usage if the files remain on the same storage unit, and the workdir can be safely deleted afterwards. (Default `symlink`).
+> * `--run_move_umi_to_header` instructs `umitools` to move UMI from fastq reads to the read header. Use it if the UMI is in the 5' end of the fastq reads. In this case, ensure you provide the UMI format to `umi_header_format`.
 > * `umi_separator` is used to separate the UMI sequence in the read header. If you have processed FASTQ files, check the separator character.
+> * `-bg` Optional. Nextflow is interactive by default, and progress is written to the terminal. That's fine for testing because you can easily kill the process if needed. It will also work if you run it under a `screen` session (although most of the log won't be visible if you detach and reattach to the session later). Alternatively, you can use `-bg` to send the process to the background and redirect the progress info to a file. You can occasionally `cat` the log file to check the progress.
 > * If something goes wrong, you can resume the pipeline with the option `-resume`: completed jobs won't be repeated.
 > * A failed job will be automatically resubmitted by the pipeline with double the resources. If it fails again, the pipeline will stop with an error. This usually indicates a bug. Once it's fixed, re-run the pipeline with `-resume`.
 > * If you are executing the pipeline as a SLURM job, the sbatch resource requests (eg. `--cpus-per-task=2`, `--mem=8G`) only apply to the Nextflow master controller process. Nextflow will automatically use SLURM commands (`srun`/`sbatch`) behind the scenes to launch individual pipeline tasks as separate, independent cluster jobs.
+
+> [!NOTE]
+> If you are processing fastq files from **Encode**, you will need to use the `--encode_eclip true` (and omit `--run_move_umi_to_header`, `-umi_header_format`, `--umi_separator`). This is to deal with the unconventional UMI format in encode files, which appears at the beginning of the read name.
 
 
 ## Results
@@ -112,8 +125,8 @@ Nextflow pipelines write to two folders by default: `./work` and `./results`.
 `work` contains all the staged files and the outputs from every job. It also enables automatic resumption of the pipeline when something goes wrong.
 
 `results` is the main output location.
-> [!WARNING]
-> * The pipeline will populate `results` with **symlinks** to `work`. Do not delete `work`.
+> [!NOTE]
+> * If you used `--publish_dir_mode link`, you can safely delete `work` to delete intermediary files and save disk space. Do this after you are sure everything ran successfully (you won't be able to take advante of `-resume`). 
 
 Results will be written to `./results/` folder, containing:
 * `00_genome` contains all reference files produced when the prepare_clipseq subworkflow is run.
@@ -125,6 +138,9 @@ Results will be written to `./results/` folder, containing:
 * `06_reports` contains various CLIP-specific QC metrics in tabular format in the clipqc folder. These are plotted, alongside other QC metrics in the html provided in the multiqc folder.
 * `pipeline_info` contains run summary of the jobs run by the pipeline. The most useful is `execution_report_*.html`
 
+> [!NOTE]
+> * Some intermediary files might not be needed (trimmed reads, bam files, etc.). You might want to delete them to save disk space. 
+
 ## Logs
 The main log is `./.nextflow.log`
 
@@ -133,7 +149,7 @@ The main log is `./.nextflow.log`
 ### A note on paired-end reads
 From the developers of nf-core [clipseq](https://github.com/nf-core/clipseq/tree/feat-2-0#a-note-on-paired-end-reads):
 ```
-The pipeline currently does not support paired-end reads, as in our experience alignment
+The pipeline currently does not support paired-end reads, as in our experience, alignment
 using both reads when available doesn't improve analysis of CLIP data. When receiving CLIP
 data sequenced as paired-end, we recommend running the pipeline with the read containing
 the crosslink and ensuring the crosslink_position parameter is set appropriately.
