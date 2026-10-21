@@ -40,7 +40,7 @@ It is more stable, and it is deployed on https://app.flow.bio/.
     - `clippy`
     - `iCount`
     - `Paraclu`
-    - `peka`
+
 > [!NOTE]
 > Sequencing must be single-ended.
 
