@@ -34,8 +34,13 @@ Popular CLIPseq pipelines options:
 > * Sequencing must be single-ended.
 
 #### Flow [CLIP-Seq](https://app.flow.bio/pipelines/960154035051242353/)
-This is essentially the same as the nf-core clipseq v2 above, developed by the same contributors.
+This is essentially the same as the nf-core clipseq v2 above, developed by the same contributors, but with different peak callers.
 It is more stable, and it is deployed on https://app.flow.bio/.
+* Peak calling:
+    - `clippy`
+    - `iCount`
+    - `Paraclu`
+    - `peka`
 > [!NOTE]
 > Sequencing must be single-ended.
 
