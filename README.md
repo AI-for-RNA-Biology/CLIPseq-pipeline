@@ -22,22 +22,23 @@ Popular CLIPseq pipelines options:
     - `iCount`
     - `Paraclu`
     - `PureCLIP`
-    - `Piranha`
-* Motif detection: `DREME`
+    - `Piranha` (`Clippy` in version 2)
+* Motif detection: `DREME` (`PEKA in version 2)
+* Consensus peak output
 * Quality control:
     - Sequence: `FastQC`
     - Library complexity: `Preseq`
     - Regional distribution: `RSeQC`
     - QC summaries: `MultiQC`
 > [!NOTE]
-> * The outdated version 1 is the only official release. Version 2 not documented and buggy.
+> * The outdated version 1 is the only official release. [Version 2](https://github.com/nf-core/clipseq/tree/feat-2-0) is not documented and is buggy.
 > * Sequencing must be single-ended.
 
 #### Flow [CLIP-Seq](https://app.flow.bio/pipelines/960154035051242353/)
 This is essentially the same as the nf-core clipseq v2 above, developed by the same contributors, but with different peak callers.
 It is more stable, and it is deployed on https://app.flow.bio/.
 * Peak calling:
-    - `clippy`
+    - `Clippy`
     - `iCount`
     - `Paraclu`
 
