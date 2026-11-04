@@ -23,7 +23,7 @@ Popular CLIPseq pipelines options:
     - `Paraclu`
     - `PureCLIP`
     - `Piranha` (`Clippy` in version 2)
-* Motif detection: `DREME` (`PEKA in version 2)
+* Motif detection: `DREME` (`PEKA` in version 2)
 * Consensus peak output
 * Quality control:
     - Sequence: `FastQC`
