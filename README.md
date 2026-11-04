@@ -15,7 +15,7 @@ Popular CLIPseq pipelines options:
 * Trimming: `cutadapt`
 * Pre-mapping to contaminant sequences (e.g. rRNA and tRNA): `bowtie2`
 * Mapping: `STAR`
-* Deduplication: `umi_tools`
+* Deduplication: `UMI-tools`
 * Crosslink identification: `BEDTools`
 * Bedgraph generation: `BEDTools`
 * Peak calling:
