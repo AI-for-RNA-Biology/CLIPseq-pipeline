@@ -10,6 +10,7 @@ Popular CLIPseq pipelines options:
 * Peak calling: `CLIPper`
 > [!NOTE]
 > Sequencing must be paired-ended.
+> (GitHub [repo](https://github.com/YeoLab/eCLIP))
 
 #### nf-core [clipseq](https://nf-co.re/clipseq/1.0.0/)
 * Trimming: `cutadapt`
