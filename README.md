@@ -80,25 +80,24 @@ We configured the pipeline to use singularity, and we prefetched all the contain
 These configs need to be passed when running the pipeline
 
 * General nextflow config for UBELIX
-    - `ubelix_nextflow.config`
+    - `*ubelix_nextflow.config`
     - This config instructs nextflow to use singularity, sets a fixed `cacheDir` location (`/storage/research/dbmr_luisierlab/resources/pipelines/singularity_cacheDir`), instructs singularity to bind `/scratch/local`, and sets some default SLURM options (QOS, wckey, etc.)
     - In addition, it adjusts resources for several pipeline processes. It also limits job time to 6h (largely sufficient) to take advantage of the free `job_cpu_preemptable` QOS.
     - You may adjust this config if needed.
 
 * Genome config
-    - `genome.config`
-    - Also available at `/storage/research/dbmr_luisierlab/resources/pipelines/clipseq/genome.config`
+    - `*genome.json`
     - Defines fixed paths to reference files needed for the pipeline.
-    - This config file is not meant to be modified.
+    - This params file is not meant to be modified.
 
-## Running the pipeline
+## Running the Flow pipeline
 Once you can run `nextflow` and have your `samplesheet`, you can execute the pipeline directly from the login node in a `screen` session, or as an SBATCH script.
 ```
 module load Java
 NXF_OPTS='-Xms1g -Xmx4g' NXF_VER=24.10.8 NXF_SINGULARITY_HOME_MOUNT=true NXF_SYNTAX_PARSER=v1 /storage/research/dbmr_luisierlab/resources/local/nextflow/nextflow run \
  /storage/research/dbmr_luisierlab/resources/pipelines/clipseq/flow/clipseq \
- -c ubelix_nextflow.config \
- -c /storage/research/dbmr_luisierlab/resources/pipelines/clipseq/genome.config \
+ -c clipseq_flow_ubelix_nextflow.config \
+ -params-file clipseq_flow.genome.json \
  -profile singularity,ubelix \
 --publish_dir_mode link \
 --samplesheet samplesheet.csv \
